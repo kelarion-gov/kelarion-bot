@@ -901,5 +901,27 @@ async def main():
             logger.error(f"Ошибка в цикле: {e}")
             await asyncio.sleep(5)
 
+from aiohttp import web
+
+async def health(request):
+    return web.Response(text="OK")
+
+async def start_web():
+    app = web.Application()
+    app.router.add_get('/', health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 10000)
+    await site.start()
+    logger.info("Health check on port 10000")
+
+async def main():
+    logger.info("Бот запущен")
+    asyncio.create_task(start_web())
+    asyncio.create_task(worker())   # если у тебя есть worker, иначе замени на свой основной цикл
+    while True:
+        await get_updates()   # или твой цикл
+        await asyncio.sleep(2)
+
 if __name__ == "__main__":
     asyncio.run(main())
